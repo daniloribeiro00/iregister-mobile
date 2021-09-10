@@ -1,107 +1,186 @@
 import React, { useState, useEffect } from 'react';
 import {
 	StyleSheet,
-	Platform,
 	TouchableWithoutFeedback,
 	View,
 	Text,
-	TextInput,
+	TouchableOpacity,
 	FlatList,
 	Keyboard,
 } from 'react-native';
 import { Button } from '../components/Button';
-import { SkillCard } from '../components/SkillCard';
+import { Input } from '../components/Input';
+import { DataCard } from '../components/DataCard';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-interface ISkillData {
+interface IData {
 	id: string;
 	name: string;
+	email: string;
+	phone: string;
 }
 
 export const Home = () => {
 	const [greeting, setGreeting] = useState('');
-	const [newSkill, setNewSkill] = useState('');
-	const [mySkills, setMySkills] = useState<ISkillData[]>([]);
-	const [mySkillsReverse, setMySkillsReverse] = useState<ISkillData[]>([]);
+	const [name, setName] = useState('');
+	const [email, setEmail] = useState('');
+	const [phone, setPhone] = useState('');
+	const [data, setData] = useState<IData[]>([]);
 	const [errorMessage, setErrorMessage] = useState(false);
+	const [reversedList, setReversedList] = useState(false);
+
+	const getGreeting = () => {
+		const currentHour = new Date().getHours();
+		if (currentHour >= 5 && currentHour < 12) {
+			setGreeting('Bom dia');
+		} else if (currentHour >= 5 && currentHour < 18) {
+			setGreeting('Boa tarde!');
+		} else {
+			setGreeting('Boa noite!');
+		}
+	};
 
 	useEffect(() => {
+		getGreeting();
 		const interval = setInterval(() => {
-			const currentHour = new Date().getHours();
-			if (currentHour >= 5 && currentHour < 12) {
-				setGreeting('Good morning!');
-			} else if (currentHour >= 5 && currentHour < 18) {
-				setGreeting('Good afternoon!');
-			} else if (currentHour >= 18 && currentHour < 21) {
-				setGreeting('Good evening!');
-			} else {
-				setGreeting('Good night!');
-			}
+			getGreeting();
 		}, 60000);
 		return () => clearInterval(interval);
 	}, []);
 
 	useEffect(() => {
-		setMySkillsReverse(mySkills.reverse());
-	}, [mySkills]);
+		const loadData = async () => {
+			const storedData = await AsyncStorage.getItem('@iregister:data');
+			if (storedData) {
+				setData(JSON.parse(storedData));
+			}
+		};
+		loadData();
+	}, []);
 
-	const handleAddNewSkill = () => {
-		if (newSkill.trim() === '') {
+	useEffect(() => {
+		const saveData = async () => {
+			await AsyncStorage.setItem('@iregister:data', JSON.stringify(data));
+		};
+		saveData();
+	}, [data]);
+
+	const handleReverse = () => {
+		setReversedList(!reversedList);
+	};
+
+	const handleSubmit = () => {
+		if (name.trim() === '' || email.trim() === '' || phone.trim() === '') {
 			setErrorMessage(true);
 			setTimeout(() => {
 				setErrorMessage(false);
 			}, 5000);
 		} else {
 			setErrorMessage(false);
-			const data = {
+			const newData = {
 				id: String(new Date().getTime()),
-				name: newSkill.trim(),
+				name: name.trim(),
+				email: email.trim(),
+				phone: phone.trim(),
 			};
-			setMySkills([...mySkills, data]);
-			setNewSkill('');
+			setData([...data, newData]);
+			setName('');
+			setEmail('');
+			setPhone('');
 			Keyboard.dismiss();
 		}
 	};
 
-	const handleDeleteSkill = (id: string) => {
-		setMySkills(mySkills.filter(skill => skill.id !== id));
+	const handleDelete = (id: string) => {
+		setData(data.filter(el => el.id !== id));
+	};
+
+	const handleDeleteAll = () => {
+		setData([]);
 	};
 
 	return (
 		<TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
 			<View style={styles.container}>
-				<Text style={styles.title}>iRegister</Text>
-				<Text style={styles.greetings}>{greeting}</Text>
-				<TextInput
-					style={styles.input}
-					placeholder='New Skill'
-					placeholderTextColor='#555'
-					autoCapitalize='words'
-					onSubmitEditing={handleAddNewSkill}
-					blurOnSubmit={true}
-					value={newSkill}
-					onChangeText={value => {
-						setNewSkill(value);
-						setErrorMessage(false);
-					}}
-				/>
-				<Button title='Add' onPress={handleAddNewSkill} />
-				{errorMessage && (
-					<Text style={styles.errorMessage}>Não pode ser vazio!</Text>
-				)}
-				<Text style={[styles.title, { marginTop: 30, fontSize: 20 }]}>
-					My Skills
-				</Text>
-				<FlatList
-					data={mySkillsReverse}
-					keyExtractor={item => item.id}
-					renderItem={({ item }) => (
-						<SkillCard
-							skill={item.name}
-							onPress={() => handleDeleteSkill(item.id)}
+				<View style={styles.titleBox}>
+					<Text style={styles.title}>iRegister</Text>
+					<Text style={styles.greetings}>{greeting}</Text>
+				</View>
+				<View style={styles.form}>
+					<Input
+						error={errorMessage}
+						placeholder='Nome'
+						placeholderTextColor='#555'
+						autoCapitalize='sentences'
+						onSubmitEditing={handleSubmit}
+						blurOnSubmit={true}
+						value={name}
+						onChangeText={value => {
+							setName(value);
+							setErrorMessage(false);
+						}}
+					/>
+					<Input
+						error={errorMessage}
+						placeholder='Email'
+						placeholderTextColor='#555'
+						autoCapitalize='none'
+						onSubmitEditing={handleSubmit}
+						blurOnSubmit={true}
+						value={email}
+						onChangeText={value => {
+							setEmail(value);
+							setErrorMessage(false);
+						}}
+						keyboardType='email-address'
+					/>
+					<Input
+						error={errorMessage}
+						placeholder='Telefone'
+						placeholderTextColor='#555'
+						onSubmitEditing={handleSubmit}
+						blurOnSubmit={true}
+						value={phone}
+						onChangeText={value => {
+							setPhone(value);
+							setErrorMessage(false);
+						}}
+						keyboardType='phone-pad'
+					/>
+					<Button title='Cadastrar' error={errorMessage} onPress={handleSubmit} />
+				</View>
+
+				<View style={{ flex: 1 }}>
+					<View style={styles.dataBox}>
+						<Text style={[styles.title, { fontSize: 20 }]}>Dados Cadastrados</Text>
+						<TouchableOpacity
+							style={styles.revertButton}
+							onPress={handleReverse}
+						>
+							<Text style={styles.revertButtonText}>{reversedList ? '↓' : '↑'}</Text>
+						</TouchableOpacity>
+					</View>
+					<View style={{ flex: 1, marginBottom: 80 }}>
+						<FlatList
+							style={{
+								height: 'auto',
+							}}
+							data={data}
+							keyExtractor={item => item.id}
+							renderItem={({ item }) => (
+								<DataCard
+									name={item.name}
+									email={item.email}
+									phone={item.phone}
+									onPress={() => handleDelete(item.id)}
+								/>
+							)}
+							showsVerticalScrollIndicator={false}
+							inverted={reversedList ? true : false}
 						/>
-					)}
-					showsVerticalScrollIndicator={false}
-				/>
+					</View>
+				</View>
+				<Button bottom={true} title='Apagar todos' bgColor='#2d2d30' onPress={handleDeleteAll} />
 			</View>
 		</TouchableWithoutFeedback>
 	);
@@ -111,8 +190,14 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		backgroundColor: '#212121',
+		paddingTop: 60,
 		paddingHorizontal: 20,
-		paddingVertical: 60,
+	},
+	titleBox: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		marginBottom: 10,
 	},
 	title: {
 		color: '#fff',
@@ -123,20 +208,28 @@ const styles = StyleSheet.create({
 		color: '#fff',
 		marginTop: 5,
 	},
-	input: {
+	form: {
+		borderStyle: 'solid',
+		borderBottomWidth: 1,
+		borderBottomColor: '#2d2d30',
+		paddingBottom: 20,
+	},
+	dataBox: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		marginBottom: 10,
+		marginTop: 15,
+	},
+	revertButton: {
 		backgroundColor: '#2d2d30',
+		borderRadius: 999,
+		height: '100%',
+	},
+	revertButtonText: {
+		paddingHorizontal: 10,
 		color: '#fff',
 		fontSize: 18,
-		padding: Platform.OS === 'ios' ? 15 : 12,
-		marginTop: 30,
-		borderRadius: 10,
-		height: 50,
-	},
-	errorMessage: {
-		marginTop: 20,
-		color: '#fa0707',
-		fontSize: 15,
 		fontWeight: 'bold',
-		textAlign: 'center',
 	},
 });
