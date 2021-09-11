@@ -5,7 +5,7 @@
 
 Para instalar o projeto, basta cloná-lo para sua máquina e rodar um dos scripts abaixo:
 
-```MD
+```
 yarn
 
 # ou
@@ -19,7 +19,7 @@ Em seguida, para executá-lo, siga os passos abaixo:
 
  - Rode um dos scripts abaixo:
 
-    ```MD
+    ```
     yarn start
 
     # ou
