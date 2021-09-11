@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
 	StyleSheet,
 	TouchableWithoutFeedback,
@@ -21,13 +21,13 @@ interface IData {
 }
 
 export const Home = () => {
+	let listViewRef: any;
 	const [greeting, setGreeting] = useState('');
 	const [name, setName] = useState('');
 	const [email, setEmail] = useState('');
 	const [phone, setPhone] = useState('');
 	const [data, setData] = useState<IData[]>([]);
 	const [errorMessage, setErrorMessage] = useState(false);
-	const [reversedList, setReversedList] = useState(false);
 
 	const getGreeting = () => {
 		const currentHour = new Date().getHours();
@@ -65,10 +65,6 @@ export const Home = () => {
 		saveData();
 	}, [data]);
 
-	const handleReverse = () => {
-		setReversedList(!reversedList);
-	};
-
 	const handleSubmit = () => {
 		if (name.trim() === '' || email.trim() === '' || phone.trim() === '') {
 			setErrorMessage(true);
@@ -91,6 +87,17 @@ export const Home = () => {
 		}
 	};
 
+	const handleScroll = () => {
+		listViewRef.scrollToEnd();
+	};
+
+	useEffect(() => {
+		let timer1 = setTimeout(() => {
+			handleScroll();
+		}, 80);
+		return () => clearTimeout(timer1);
+	}, [data]);
+
 	const handleDelete = (id: string) => {
 		setData(data.filter(el => el.id !== id));
 	};
@@ -112,7 +119,6 @@ export const Home = () => {
 						placeholder='Nome'
 						placeholderTextColor='#555'
 						autoCapitalize='sentences'
-						onSubmitEditing={handleSubmit}
 						blurOnSubmit={true}
 						value={name}
 						onChangeText={value => {
@@ -125,7 +131,6 @@ export const Home = () => {
 						placeholder='Email'
 						placeholderTextColor='#555'
 						autoCapitalize='none'
-						onSubmitEditing={handleSubmit}
 						blurOnSubmit={true}
 						value={email}
 						onChangeText={value => {
@@ -152,18 +157,16 @@ export const Home = () => {
 
 				<View style={{ flex: 1 }}>
 					<View style={styles.dataBox}>
-						<Text style={[styles.title, { fontSize: 20 }]}>Dados Cadastrados</Text>
-						<TouchableOpacity
-							style={styles.revertButton}
-							onPress={handleReverse}
-						>
-							<Text style={styles.revertButtonText}>{reversedList ? '↓' : '↑'}</Text>
-						</TouchableOpacity>
+						<Text style={[styles.title, { fontSize: 20, marginBottom: 5 }]}>Dados Cadastrados</Text>
 					</View>
-					<View style={{ flex: 1, marginBottom: 80 }}>
+					<View style={{ flex: 1 }}>
 						<FlatList
+							ref={ref => {
+								listViewRef = ref;
+							}}
 							style={{
 								height: 'auto',
+								marginBottom: 80,
 							}}
 							data={data}
 							keyExtractor={item => item.id}
@@ -176,7 +179,6 @@ export const Home = () => {
 								/>
 							)}
 							showsVerticalScrollIndicator={false}
-							inverted={reversedList ? true : false}
 						/>
 					</View>
 				</View>
@@ -220,16 +222,5 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		marginBottom: 10,
 		marginTop: 15,
-	},
-	revertButton: {
-		backgroundColor: '#2d2d30',
-		borderRadius: 999,
-		height: '100%',
-	},
-	revertButtonText: {
-		paddingHorizontal: 10,
-		color: '#fff',
-		fontSize: 18,
-		fontWeight: 'bold',
 	},
 });

@@ -1,2 +1,2 @@
 # iRegister
- Simples register form and list built with React Native.
+ Simples register form and list built with React Native and Expo.
