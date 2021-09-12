@@ -1,4 +1,4 @@
-# iRegister
+# iRegister (AVD3 de POO II do UniFOA)
  Simple register form and list built with React Native and Expo.
 
  Formulário de registro e lista simples construído com React Native e Expo.
