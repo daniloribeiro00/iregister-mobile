@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-	StyleSheet,
-	TouchableWithoutFeedback,
-	View,
-	Text,
-	FlatList,
-	Keyboard,
-} from 'react-native';
+import { StyleSheet, TouchableWithoutFeedback, View, Text, FlatList, Keyboard } from 'react-native';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { DataCard } from '../components/DataCard';
