@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
 	StyleSheet,
 	TouchableWithoutFeedback,
 	View,
 	Text,
-	TouchableOpacity,
 	FlatList,
 	Keyboard,
 } from 'react-native';
